@@ -1,0 +1,17 @@
+{
+  "dependencies": {
+    "@executeautomation/playwright-mcp-server": "^1.0.6",
+    "@modelcontextprotocol/server-filesystem": "^2025.8.21"
+  },
+  "name": "final_web_testing_playwright-main",
+  "version": "1.0.0",
+  "description": "This project integrates AI agents with Playwright and file server to create autonomous QA testing capabilities for web applications.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}

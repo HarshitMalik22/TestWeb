@@ -1,0 +1,9 @@
+| Test Case ID | Test Case Description                               | Test Case Status | Screenshot Reference                              | Error Description                               |
+|--------------|----------------------------------------------------|------------------|-------------------------------------------------|------------------------------------------------|
+| TC-01        | Verify homepage loads correctly                     | PASS             | fs_files/screenshots/Passed_TC-01_Homepage.png | None                                           |
+| TC-02        | Verify "Order Now" button functionality             | FAIL             | fs_files/screenshots/Failed_TC-02_Order_Now_Click.png | Button not visible after multiple attempts.  |
+| TC-03        | Validate "Find My Hardee's" functionality          | PASS             | fs_files/screenshots/Passed_TC-03_Join_Our_Team.png | None                                           |
+| TC-04        | Check the visibility of the featured menu items     | IN PROGRESS      |                                                 | Not executed due to timeout on previous cases.
+| TC-05        | Test "Join My Rewards" pop-up                      | IN PROGRESS      |                                                 | Not executed due to timeout on previous cases.
+| TC-06        | Verify navigation to "Gift Cards" page             | IN PROGRESS      |                                                 | Not executed due to timeout on previous cases.
+| TC-07        | Test invalid input in "Find My Hardee's" search | FAIL             | fs_files/screenshots/Failed_TC-07_Invalid_Input_After_Click.png | Input field not found or visible.             |

@@ -1,0 +1,9 @@
+Test Case ID,Test Case Description,Test Case Status,Screenshot Reference,Error Description
+--------------,-----------------------------------------------------,------------------,--------------------------------------------------------,-----------------------------------------------------------
+ TC-01        , Navigate to the homepage of Hardee's                , PASS             ,                                                        , Navigation was successful.                                
+ TC-02        ," Click on ""Menu"" link from the navigation    "    , FAIL             , fs_files/screenshots/Failed_TC-02_Menu_Access.png     ," Timeout exceeded while trying to click the ""Menu"" link.   "
+ TC-03        ," Click on ""ORDER NOW"" button                  "   , FAIL             , fs_files/screenshots/Failed_TC-03_Order_Now_Access.png , Timeout exceeded; element not visible.                     
+ TC-04        ," Join the rewards program by clicking ""Join Now"  ", FAIL             , fs_files/screenshots/Failed_TC-04_Join_Now_Access.png  , Timeout exceeded; element not visible.                     
+ TC-05        , Accept cookies from the cookie consent popup        , N/A              ,                                                        , Not attempted due to navigation focus.                   
+ TC-06        , Search for a menu item (search functionality)       , N/A              ,                                                        , Not attempted; other cases failed.                        
+ TC-07        ," Attempt to submit the ""Contact Us"" form             ", N/A              ,                                                        , Not attempted; other cases failed.                        
