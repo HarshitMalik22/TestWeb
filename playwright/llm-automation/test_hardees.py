@@ -28,8 +28,9 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class HardeesTest:
-    def __init__(self, headless=False):
+    def __init__(self, headless=False, keep_browser_open=False):
         self.headless = headless
+        self.keep_browser_open = keep_browser_open
         self.base_url = "https://www.hardees.com/"
         self.timeout = 30000  # 30 seconds
         self.test_agent = AITestAgent()
@@ -105,14 +106,43 @@ class HardeesTest:
         """Clean up test resources"""
         try:
             if hasattr(self, 'context') and self.context:
-                await self.context.close()
+                if not self.keep_browser_open:
+                    await self.context.close()
+                else:
+                    logger.info("Keeping browser context open as requested")
+            
             if hasattr(self, 'browser') and self.browser:
-                await self.browser.close()
+                if not self.keep_browser_open:
+                    await self.browser.close()
+                else:
+                    logger.info("Keeping browser window open as requested")
+            
+            # Always clean up playwright resources
             if hasattr(self, 'playwright') and self.playwright:
-                await self.playwright.stop()
+                if not self.keep_browser_open:
+                    await self.playwright.stop()
+                else:
+                    logger.info("Playwright resources will be cleaned up when the script exits")
+            
+            if self.keep_browser_open:
+                logger.info("Browser is being kept open. Close it manually when done.")
+                # Keep the script running until user presses Enter
+                if hasattr(self, 'page') and self.page:
+                    logger.info(f"Page URL: {self.page.url}")
+                input("Press Enter to close the browser and exit...")
+                
+                # Now close everything
+                if hasattr(self, 'context') and self.context:
+                    await self.context.close()
+                if hasattr(self, 'browser') and self.browser:
+                    await self.browser.close()
+                if hasattr(self, 'playwright') and self.playwright:
+                    await self.playwright.stop()
+                    
             logger.info("Test resources cleaned up")
         except Exception as e:
             logger.error(f"Error during cleanup: {str(e)}")
+            raise
 
     async def wait_for_selector_visible(self, selector, timeout=None, state='visible', retries=3):
         """Wait for selector to be visible and return it with retries"""
@@ -665,7 +695,8 @@ class HardeesTest:
 
 async def main():
     test_start = datetime.datetime.now()
-    test = HardeesTest(headless=False)
+    # Set keep_browser_open=True to keep the browser window open after tests complete
+    test = HardeesTest(headless=False, keep_browser_open=True)
     try:
         logger.info("Starting Hardee's test automation...")
         

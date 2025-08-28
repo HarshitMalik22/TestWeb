@@ -539,6 +539,7 @@ class EnhancedTestRunner:
         self.browser = None
         self.current_step = 0
         self.total_steps = 0
+        self.keep_browser_open = False  # Flag to control browser cleanup
         
     async def initialize_playwright(self, headless=False):
         """Initialize Playwright with optimized settings"""
@@ -586,22 +587,38 @@ class EnhancedTestRunner:
     
     async def cleanup(self):
         """Enhanced cleanup with better error handling"""
+        # Skip browser cleanup if keep_browser_open is True
+        if not self.keep_browser_open:
+            try:
+                if hasattr(self, 'browser') and self.browser:
+                    await self.browser.close()
+                    self.browser = None
+            except Exception as e:
+                print(f"Error closing browser: {e}")
+        
+        # Always clean up playwright resources
         try:
-            if hasattr(self, 'browser') and self.browser:
-                await self.browser.close()
-                self.browser = None
-        except Exception as e:
-            print(f"Error closing browser: {e}")
-            
-        try:
-            if hasattr(self, 'playwright') and self.playwright:
+            if hasattr(self, 'playwright') and self.playwright and not self.keep_browser_open:
                 await self.playwright.stop()
                 self.playwright = None
         except Exception as e:
             print(f"Error stopping playwright: {e}")
+            
+        if self.keep_browser_open:
+            print("\n⚠️  Browser window kept open as requested.\n"
+                  "   To close it manually, you'll need to stop the Streamlit app.\n"
+                  "   To re-enable automatic browser closing, set keep_browser_open=False")
     
-    async def run_test_with_progress(self, test_description: str, progress_callback=None, log_callback=None):
-        """Run test with real-time progress updates and logging"""
+    async def run_test_with_progress(self, test_description: str, progress_callback=None, log_callback=None, keep_browser_open=False):
+        """Run test with real-time progress updates and logging
+        
+        Args:
+            test_description: Description of the test to run
+            progress_callback: Callback for progress updates
+            log_callback: Callback for log messages
+            keep_browser_open: If True, browser window will remain open after test completion
+        """
+        self.keep_browser_open = keep_browser_open
         try:
             # Step 1: Generate test actions
             if log_callback:
@@ -722,7 +739,7 @@ def display_enhanced_metrics(results: List[Dict[str, Any]]):
     if failed_steps == 0:
         st.markdown("""
         <div class="status-card success fade-in">
-            <h3>🎉 Test Passed!</h3>
+            <h3> Test Passed!</h3>
             <p>All steps executed successfully. Your application is working as expected.</p>
         </div>
         """, unsafe_allow_html=True)
@@ -739,13 +756,13 @@ def display_enhanced_test_results(results: List[Dict[str, Any]]):
     if not results:
         return
     
-    st.markdown("## 📊 Test Execution Report")
+    st.markdown("## Test Execution Report")
     
     # Display metrics
     display_enhanced_metrics(results)
     
     # Detailed steps
-    st.markdown("### 📋 Detailed Test Steps")
+    st.markdown("### Detailed Test Steps")
     
     # Filter options
     col1, col2 = st.columns([3, 1])
@@ -845,6 +862,8 @@ def create_sidebar():
         st.markdown("### ⚙️ Settings")
         st.session_state.headless_mode = st.checkbox("Headless Mode", value=False)
         st.session_state.capture_video = st.checkbox("Record Video", value=False)
+        st.session_state.keep_browser_open = st.checkbox("Keep Browser Open After Tests", value=False,
+                                                       help="When enabled, browser window will remain open after test completion for inspection")
         st.session_state.slow_motion = st.slider("Slow Motion (ms)", 0, 2000, 500)
         
         # Help section
@@ -910,13 +929,13 @@ def main():
     with col2:
         st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
         run_button = st.button(
-            "🚀 Run Test",
+            " Run Test",
             type="primary",
             use_container_width=True,
             disabled=st.session_state.test_running
         )
         
-        if st.button("🗑️ Clear Results", use_container_width=True):
+        if st.button(" Clear Results", use_container_width=True):
             st.session_state.test_results = None
             st.session_state.test_logs = []
             st.rerun()
@@ -969,11 +988,18 @@ def main():
             # Run the test
             async def run_test_async():
                 try:
+                    # Get the keep_browser_open setting from session state
+                    keep_open = st.session_state.get('keep_browser_open', False)
+                    
+                    # Run the test with progress updates
                     results = await st.session_state.test_runner.run_test_with_progress(
                         full_test_description,
                         progress_callback=update_progress,
-                        log_callback=add_log
+                        log_callback=add_log,
+                        keep_browser_open=keep_open
                     )
+                    
+                    # Store results and update UI
                     st.session_state.test_results = results
                     st.session_state.test_running = False
                     progress_container.empty()
@@ -987,13 +1013,33 @@ def main():
                         else:
                             st.error(f"⚠️ Test completed with issues. {passed}/{total} steps passed.")
                     
+                    # If keeping browser open, show message to user
+                    if keep_open:
+                        st.warning("⚠️ Browser window was kept open as requested. Close it manually when done.")
+                    
                 except Exception as e:
                     st.error(f"❌ Test execution failed: {str(e)}")
                     st.session_state.test_running = False
                     progress_container.empty()
+                    
+                    # If keeping browser open, show message to user even on error
+                    if st.session_state.get('keep_browser_open', False):
+                        st.warning("⚠️ Test failed, but browser window was kept open for debugging.")
+                        
+                    # Re-raise the exception to ensure it's logged
+                    raise
+                finally:
+                    # Ensure we always mark test as not running
+                    st.session_state.test_running = False
             
-            # Execute the async function
-            asyncio.run(run_test_async())
+            # Execute the async function with proper error handling
+            try:
+                asyncio.run(run_test_async())
+            except Exception as e:
+                # This will be caught by Streamlit's error handling
+                pass
+                
+            # Rerun to update the UI
             st.rerun()
     
     elif run_button:

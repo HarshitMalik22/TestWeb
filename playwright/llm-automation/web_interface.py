@@ -26,54 +26,6 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Theme configuration in the sidebar
-def create_sidebar():
-    with st.sidebar:
-        st.markdown("# Test Studio")
-        
-        # Theme selector
-        st.radio(
-            "Theme",
-            ["Light", "Dark"],
-            index=0,
-            horizontal=True,
-            key="theme_selector"
-        )
-        
-        # Quick examples
-        st.markdown("### Example Tests")
-        examples = [
-            "Go to google.com and search for 'AI testing'",
-            "Navigate to github.com, click sign up button",
-            "Visit amazon.com, search for 'laptop', click first result",
-            "Go to wikipedia.org, search for 'machine learning'"
-        ]
-        
-        for example in examples:
-            if st.button(example, key=f"example_{example[:10]}"):
-                st.session_state.example_selected = example
-                st.rerun()
-        
-        # Help section
-        st.markdown("---")
-        st.markdown("### Help")
-        st.markdown("""
-        - Be specific in your test descriptions
-        - Include target URLs when possible
-        - Use natural language to describe actions
-        - Check logs for detailed execution info
-        """)
-
-# Call the sidebar function to render it
-create_sidebar()
-
-# Get the current theme
-theme = st.session_state.get('theme_selector', 'Light')
-
-# Set the theme in the session state
-if 'theme' not in st.session_state:
-    st.session_state.theme = theme
-
 # Enhanced CSS for better UI with theme support
 st.markdown("""
 <style>
@@ -105,61 +57,9 @@ st.markdown("""
     }
     
     /* Update Streamlit's default colors */
-    .stApp {{
+    .stApp {
         background-color: var(--background-color);
         color: var(--text-primary);
-    }}
-    
-    /* Update text colors */
-    h1, h2, h3, h4, h5, h6, p, label, div, span {{
-        color: var(--text-primary) !important;
-    }}
-    
-    /* Update input fields */
-    .stTextInput>div>div>input, 
-    .stTextArea>div>div>textarea,
-    .stSelectbox>div>div>div,
-    .stNumberInput>div>div>input {{
-        background-color: var(--card-background) !important;
-        color: var(--text-primary) !important;
-        border-color: var(--border-color) !important;
-    }}
-    
-    /* Update sidebar */
-    [data-testid="stSidebar"] {{
-        background-color: var(--card-background) !important;
-    }}
-    
-    /* Update cards and containers */
-    .css-1r6slb0, .css-1x8cf1d, .css-1x8cf1d p, .css-1x8cf1d h1, .css-1x8cf1d h2, .css-1x8cf1d h3 {{
-        color: var(--text-primary) !important;
-    }}
-    
-    /* Update buttons */
-    .stButton>button {
-        color: white !important;
-        border: 1px solid var(--border-color) !important;
-    }
-    
-    /* Update code blocks */
-    .stCodeBlock pre {
-        background-color: #f8f9fa !important;
-        border: 1px solid var(--border-color) !important;
-    }
-    
-    /* Dark theme overrides */
-    [data-theme='Dark'] .stCodeBlock pre {
-        background-color: #1e293b !important;
-    }
-    
-    /* Update tables */
-    .stDataFrame, .stTable, table {
-        color: var(--text-primary) !important;
-    }
-    
-    /* Global styles */
-    .main > div {
-        padding-top: 2rem;
     }
     
     /* Enhanced buttons */
@@ -258,6 +158,8 @@ st.markdown("""
         border-radius: 8px;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         transition: transform 0.3s ease;
+        max-width: 100%;
+        height: auto;
     }
     
     .screenshot-container img:hover {
@@ -306,14 +208,6 @@ st.markdown("""
         letter-spacing: 0.05em;
     }
     
-    /* Progress indicators */
-    .progress-container {
-        background: var(--background-color);
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin: 1rem 0;
-    }
-    
     /* Real-time logs */
     .log-container {
         background: #1f2937;
@@ -336,69 +230,6 @@ st.markdown("""
     .log-entry:last-child {
         border-bottom: none;
     }
-    
-    .log-timestamp {
-        color: #9ca3af;
-        font-size: 0.75rem;
-    }
-    
-    /* Sidebar enhancements */
-    .sidebar .block-container {
-        padding-top: 2rem;
-    }
-    
-    /* Animation utilities */
-    .fade-in {
-        animation: fadeIn 0.5s ease-in;
-    }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    
-    /* Status indicators */
-    .status-indicator {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.5rem 1rem;
-        border-radius: 20px;
-        font-weight: 500;
-        font-size: 0.875rem;
-    }
-    
-    .status-indicator.success {
-        background: #dcfce7;
-        color: #166534;
-    }
-    
-    .status-indicator.error {
-        background: #fef2f2;
-        color: #991b1b;
-    }
-    
-    .status-indicator.running {
-        background: #fef3c7;
-        color: #92400e;
-    }
-    
-    /* Code blocks */
-    .stCode {
-        border-radius: 8px !important;
-    }
-    
-    /* Text areas */
-    .stTextArea textarea {
-        border-radius: 8px;
-        border: 2px solid var(--border-color);
-        font-family: 'Inter', sans-serif;
-    }
-    
-    .stTextArea textarea:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -410,10 +241,12 @@ class EnhancedTestRunner:
         self.test_executor = None
         self.playwright = None
         self.browser = None
+        self.context = None
+        self.page = None
         self.current_step = 0
         self.total_steps = 0
         
-    async def initialize_playwright(self, headless=False):
+    async def initialize_playwright(self, headless=True):
         """Initialize Playwright with optimized settings"""
         try:
             if self.playwright is None:
@@ -434,40 +267,49 @@ class EnhancedTestRunner:
                 
                 self.browser = await self.playwright.chromium.launch(
                     headless=headless,
-                    args=browser_args
+                    args=browser_args,
+                    slow_mo=500  # Add slow motion for better visibility
                 )
             
-            # Optimized context settings
-            context = await self.browser.new_context(
+            # Create new context for each test run
+            if self.context:
+                await self.context.close()
+                
+            self.context = await self.browser.new_context(
                 viewport={'width': 1280, 'height': 800},
                 ignore_https_errors=True,
                 record_video_dir='videos/' if os.getenv('RECORD_VIDEO') else None
             )
             
-            # Set up request interception for faster loading
-            await context.route("**/*.{png,jpg,jpeg,gif,svg,woff,woff2}", lambda route: route.abort())
-            
-            page = await context.new_page()
-            self.test_executor = TestExecutor(page)
+            # Create new page
+            self.page = await self.context.new_page()
+            self.test_executor = TestExecutor(self.page)
             
             return self.browser, self.playwright
             
         except Exception as e:
-            st.error(f"❌ Failed to initialize browser: {str(e)}")
+            st.error(f"Failed to initialize browser: {str(e)}")
             await self.cleanup()
             raise
     
     async def cleanup(self):
         """Enhanced cleanup with better error handling"""
         try:
-            if hasattr(self, 'browser') and self.browser:
+            if self.context:
+                await self.context.close()
+                self.context = None
+        except Exception as e:
+            print(f"Error closing context: {e}")
+            
+        try:
+            if self.browser:
                 await self.browser.close()
                 self.browser = None
         except Exception as e:
             print(f"Error closing browser: {e}")
             
         try:
-            if hasattr(self, 'playwright') and self.playwright:
+            if self.playwright:
                 await self.playwright.stop()
                 self.playwright = None
         except Exception as e:
@@ -475,6 +317,7 @@ class EnhancedTestRunner:
     
     async def run_test_with_progress(self, test_description: str, progress_callback=None, log_callback=None):
         """Run test with real-time progress updates and logging"""
+        results = []
         try:
             # Step 1: Generate test actions
             if log_callback:
@@ -493,9 +336,10 @@ class EnhancedTestRunner:
             
             # Step 2: Initialize browser
             if log_callback:
-                log_callback("🚀 Launching optimized browser...")
+                log_callback("🚀 Launching browser...")
             
-            await self.initialize_playwright(headless=False)
+            headless_mode = st.session_state.get('headless_mode', True)
+            await self.initialize_playwright(headless=headless_mode)
             if log_callback:
                 log_callback("✅ Browser ready")
             
@@ -503,9 +347,9 @@ class EnhancedTestRunner:
             if log_callback:
                 log_callback("⚡ Starting test execution...")
             
-            results = []
             for i, action in enumerate(test_actions, 1):
                 self.current_step = i
+                start_time = time.time()
                 
                 if progress_callback:
                     progress_callback(i, self.total_steps, f"Step {i}: {action.description}")
@@ -514,22 +358,27 @@ class EnhancedTestRunner:
                     log_callback(f"🔄 Executing step {i}/{self.total_steps}: {action.description}")
                 
                 try:
-                    result = await self.test_executor.execute_action(action)
+                    # Execute the action with enhanced error handling
+                    result = await self.execute_action_with_screenshot(action, i)
                     result['step_number'] = i
+                    result['duration'] = time.time() - start_time
                     results.append(result)
                     
                     status = "✅" if result['status'] == 'passed' else "❌"
                     if log_callback:
-                        log_callback(f"{status} Step {i} completed in {result.get('duration', 0):.2f}s")
+                        log_callback(f"{status} Step {i} completed in {result['duration']:.2f}s")
                     
                 except Exception as e:
                     error_result = {
                         'step_number': i,
                         'description': action.description,
                         'action_type': action.action_type,
+                        'selector': action.selector,
+                        'value': action.value,
                         'status': 'failed',
                         'error': str(e),
-                        'duration': 0
+                        'duration': time.time() - start_time,
+                        'screenshot': await self.capture_error_screenshot(i, action.description)
                     }
                     results.append(error_result)
                     
@@ -544,9 +393,165 @@ class EnhancedTestRunner:
         except Exception as e:
             if log_callback:
                 log_callback(f"💥 Critical error: {str(e)}")
-            return []
+            return results
         finally:
             await self.cleanup()
+
+    async def execute_action_with_screenshot(self, action: TestAction, step_number: int):
+        """Execute action and capture screenshot with proper error handling"""
+        try:
+            # Execute the action using the backend's TestExecutor
+            start_time = time.time()
+            
+            if action.action_type == 'navigate':
+                url = action.selector if '://' in action.selector else f'https://{action.selector}'
+                await self.page.goto(url, timeout=60000, wait_until='domcontentloaded')
+                
+            elif action.action_type == 'click':
+                element = await self.page.wait_for_selector(
+                    action.selector, 
+                    state='visible', 
+                    timeout=10000
+                )
+                await element.scroll_into_view_if_needed()
+                await element.click()
+                
+            elif action.action_type == 'fill':
+                await self.page.fill(action.selector, str(action.value))
+                
+            elif action.action_type == 'select':
+                await self.page.select_option(action.selector, value=str(action.value))
+                
+            elif action.action_type == 'wait':
+                seconds = int(action.value) if action.value else 1
+                await asyncio.sleep(seconds)
+                
+            elif action.action_type == 'screenshot':
+                pass  # Screenshot will be taken below
+                
+            else:
+                # Use the backend's execute_action method for other actions
+                await self.test_executor.execute_action(action)
+            
+            # Take screenshot after successful execution
+            screenshot_data = await self.capture_screenshot(step_number, action.description)
+            
+            return {
+                'description': action.description,
+                'action_type': action.action_type,
+                'selector': action.selector,
+                'value': action.value,
+                'status': 'passed',
+                'screenshot': screenshot_data,
+                'duration': time.time() - start_time
+            }
+            
+        except Exception as e:
+            # Capture error screenshot
+            error_screenshot = await self.capture_error_screenshot(step_number, action.description)
+            raise Exception(f"Action failed: {str(e)}")
+
+    async def capture_screenshot(self, step_number: int, description: str):
+        """Capture screenshot and return as base64 data"""
+        try:
+            if not self.page:
+                return None
+                
+            # Take screenshot as bytes
+            screenshot_bytes = await self.page.screenshot(
+                full_page=True,
+                type='png'
+            )
+            
+            # Also save to file for debugging
+            timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+            safe_desc = "".join(c if c.isalnum() or c in [' ', '_'] else '' for c in description)[:50]
+            filename = f"step_{step_number:02d}_{timestamp}_{safe_desc}.png"
+            
+            os.makedirs('screenshots', exist_ok=True)
+            filepath = os.path.join('screenshots', filename)
+            
+            with open(filepath, 'wb') as f:
+                f.write(screenshot_bytes)
+            
+            return screenshot_bytes
+            
+        except Exception as e:
+            print(f"Error capturing screenshot: {e}")
+            return None
+
+    async def capture_error_screenshot(self, step_number: int, description: str):
+        """Capture screenshot on error"""
+        try:
+            if not self.page:
+                return None
+                
+            screenshot_bytes = await self.page.screenshot(
+                full_page=True,
+                type='png'
+            )
+            
+            # Save error screenshot
+            timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+            safe_desc = "".join(c if c.isalnum() or c in [' ', '_'] else '' for c in description)[:50]
+            filename = f"error_step_{step_number:02d}_{timestamp}_{safe_desc}.png"
+            
+            os.makedirs('error_screenshots', exist_ok=True)
+            filepath = os.path.join('error_screenshots', filename)
+            
+            with open(filepath, 'wb') as f:
+                f.write(screenshot_bytes)
+            
+            return screenshot_bytes
+            
+        except Exception as e:
+            print(f"Error capturing error screenshot: {e}")
+            return None
+
+def create_sidebar():
+    """Create enhanced sidebar with settings and help"""
+    with st.sidebar:
+        st.markdown("#  Test Studio")
+        
+        # Theme selector
+        theme = st.radio(
+            "Theme",
+            ["Light", "Dark"],
+            index=0,
+            horizontal=True,
+            key="theme_selector"
+        )
+        
+        # Settings
+        st.markdown("### ⚙️ Settings")
+        st.session_state.headless_mode = st.checkbox("Headless Mode", value=False)
+        st.session_state.capture_video = st.checkbox("Record Video", value=False)
+        st.session_state.slow_motion = st.slider("Slow Motion (ms)", 0, 2000, 500)
+        
+        # Quick examples
+        st.markdown("### 💡 Example Tests")
+        examples = [
+            "go to hardees.com the menu go to the breakfast section and  get me a maple biscuit",
+            "go to hardees.com and in the menu check for breakfast items and open maple biscuit",
+        ]
+        
+        selected_example = st.selectbox("Choose an example:", [""] + examples)
+        if selected_example:
+            st.session_state.example_selected = selected_example
+        
+        # Help section
+        with st.expander("📚 Help & Tips"):
+            st.markdown("""
+            **Writing Good Test Descriptions:**
+            - Be specific about actions
+            - Include element descriptions
+            - Mention expected outcomes
+            
+            **Examples of good descriptions:**
+            - ✅ "Click the blue 'Sign Up' button"
+            - ✅ "Fill the email field with test@example.com"
+            - ❌ "Do something on the page"
+            """)
 
 def display_enhanced_metrics(results: List[Dict[str, Any]]):
     """Display enhanced metrics with better visualizations"""
@@ -560,32 +565,26 @@ def display_enhanced_metrics(results: List[Dict[str, Any]]):
     avg_duration = sum(r.get('duration', 0) for r in results) / total_steps if total_steps > 0 else 0
     
     # Metrics cards
-    st.markdown("""
+    st.markdown(f"""
     <div class="metrics-container">
         <div class="metric-card primary">
             <div class="metric-label">Total Steps</div>
-            <div class="metric-value">{}</div>
+            <div class="metric-value">{total_steps}</div>
         </div>
         <div class="metric-card success">
             <div class="metric-label">Success Rate</div>
-            <div class="metric-value">{:.1f}%</div>
+            <div class="metric-value">{success_rate:.1f}%</div>
         </div>
-        <div class="metric-card {} ">
+        <div class="metric-card {'error' if failed_steps > 0 else 'success'}">
             <div class="metric-label">Failed Steps</div>
-            <div class="metric-value">{}</div>
+            <div class="metric-value">{failed_steps}</div>
         </div>
         <div class="metric-card warning">
             <div class="metric-label">Avg Duration</div>
-            <div class="metric-value">{:.1f}s</div>
+            <div class="metric-value">{avg_duration:.1f}s</div>
         </div>
     </div>
-    """.format(
-        total_steps,
-        success_rate,
-        "error" if failed_steps > 0 else "success",
-        failed_steps,
-        avg_duration
-    ), unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
     
     # Progress bar
     progress_value = passed_steps / total_steps if total_steps > 0 else 0
@@ -595,7 +594,7 @@ def display_enhanced_metrics(results: List[Dict[str, Any]]):
     if failed_steps == 0:
         st.markdown("""
         <div class="status-card success">
-            <h3>🎉 Test Passed!</h3>
+            <h3> Test Passed!</h3>
             <p>All steps executed successfully. Your application is working as expected.</p>
         </div>
         """, unsafe_allow_html=True)
@@ -608,17 +607,17 @@ def display_enhanced_metrics(results: List[Dict[str, Any]]):
         """, unsafe_allow_html=True)
 
 def display_enhanced_test_results(results: List[Dict[str, Any]]):
-    """Display test results with enhanced visuals and interactivity"""
+    """Display test results with enhanced visuals and proper screenshot handling"""
     if not results:
         return
     
-    st.markdown("## 📊 Test Execution Report")
+    st.markdown("##  Test Execution Report")
     
     # Display metrics
     display_enhanced_metrics(results)
     
     # Detailed steps
-    st.markdown("### 📋 Detailed Test Steps")
+    st.markdown("###  Detailed Test Steps")
     
     # Filter options
     col1, col2 = st.columns([3, 1])
@@ -635,8 +634,8 @@ def display_enhanced_test_results(results: List[Dict[str, Any]]):
     elif filter_option == "Failed Only":
         filtered_results = [r for r in results if r.get('status') == 'failed']
     
-    for i, result in enumerate(filtered_results, 1):
-        step_number = result.get('step_number', i)
+    for result in filtered_results:
+        step_number = result.get('step_number', 1)
         status = result.get('status', 'unknown')
         status_emoji = "✅" if status == 'passed' else "❌" if status == 'failed' else "⏳"
         
@@ -656,72 +655,37 @@ def display_enhanced_test_results(results: List[Dict[str, Any]]):
                     st.error(f"**Error:** {result['error']}")
                 
                 # Action details
-                if 'selector' in result:
+                if result.get('selector'):
                     st.code(f"Selector: {result['selector']}")
-                if 'value' in result and result['value']:
+                if result.get('value'):
                     st.code(f"Value: {result['value']}")
             
             with col2:
-                # Screenshot
-                if 'screenshot' in result and result['screenshot']:
+                # Enhanced screenshot display
+                if result.get('screenshot'):
                     try:
-                        # Convert bytes to base64 for display
-                        if isinstance(result['screenshot'], bytes):
-                            img_b64 = base64.b64encode(result['screenshot']).decode()
+                        screenshot_data = result['screenshot']
+                        if isinstance(screenshot_data, bytes):
+                            # Convert bytes to base64 for display
+                            img_b64 = base64.b64encode(screenshot_data).decode()
                             st.markdown(f"""
                             <div class="screenshot-container">
                                 <img src="data:image/png;base64,{img_b64}" 
-                                     style="width: 100%; max-width: 2000px;">
+                                     style="width: 100%; max-width: 400px; cursor: pointer;"
+                                     onclick="window.open('data:image/png;base64,{img_b64}', '_blank')">
                                 <p style="text-align: center; font-size: 0.8em; color: #666; margin-top: 0.5rem;">
-                                    Step {step_number} Screenshot
+                                    Step {step_number} Screenshot (Click to enlarge)
                                 </p>
                             </div>
                             """, unsafe_allow_html=True)
                         else:
-                            st.image(result['screenshot'], 
+                            st.image(screenshot_data, 
                                    caption=f"Step {step_number}", 
-                                   width=900)
+                                   width=400)
                     except Exception as e:
                         st.warning(f"Could not display screenshot: {str(e)}")
-
-def create_sidebar():
-    """Create enhanced sidebar with settings and help"""
-    # Theme toggle is now at the top of the file for global access
-    with st.sidebar:
-        st.markdown("# 🎯 Test Studio")
-        
-        # Quick examples
-        st.markdown("### 💡 Example Tests")
-        examples = [
-            "Go to google.com and search for 'AI testing'",
-            "Navigate to github.com, click sign up button",
-            "Visit amazon.com, search for 'laptop', click first result",
-            "Go to wikipedia.org, search for 'machine learning'"
-        ]
-        
-        selected_example = st.selectbox("Choose an example:", [""] + examples)
-        if selected_example:
-            st.session_state.example_selected = selected_example
-        
-        # Settings
-        st.markdown("### ⚙️ Settings")
-        st.session_state.headless_mode = st.checkbox("Headless Mode", value=False)
-        st.session_state.capture_video = st.checkbox("Record Video", value=False)
-        st.session_state.slow_motion = st.slider("Slow Motion (ms)", 0, 2000, 500)
-        
-        # Help section
-        with st.expander("📚 Help & Tips"):
-            st.markdown("""
-            **Writing Good Test Descriptions:**
-            - Be specific about actions
-            - Include element descriptions
-            - Mention expected outcomes
-            
-            **Examples of good descriptions:**
-            - ✅ "Click the blue 'Sign Up' button"
-            - ✅ "Fill the email field with test@example.com"
-            - ❌ "Do something on the page"
-            """)
+                else:
+                    st.info("No screenshot available for this step")
 
 def main():
     """Enhanced main Streamlit app"""
@@ -771,85 +735,93 @@ def main():
     with col2:
         st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
         run_button = st.button(
-            "Run Test",
+            " Run Test",
             type="primary",
             use_container_width=True,
             disabled=st.session_state.test_running
         )
         
-        if st.button("Clear Results", use_container_width=True):
+        if st.button("🗑 Clear Results", use_container_width=True):
             st.session_state.test_results = None
             st.session_state.test_logs = []
             st.rerun()
     
     # Test execution
     if run_button and test_description.strip():
-        if test_description.strip() and target_url.strip():
-            # Initialize test runner if not already done
-            if st.session_state.test_runner is None:
-                st.session_state.test_runner = EnhancedTestRunner()
+        if not target_url.strip():
+            st.error("Please enter a target URL")
+            st.stop()
             
-            # Prepend URL navigation to test description if not already included
+        st.session_state.test_running = True
+        st.session_state.test_results = None
+        st.session_state.test_logs = []
+        
+        # Prepare full test description
+        if not any(word in test_description.lower() for word in ['go to', 'navigate to', 'visit']):
             full_test_description = f"Go to {target_url} and {test_description}"
-            if not any(word in test_description.lower() for word in ['go to', 'navigate to', 'visit']):
-                full_test_description = f"Go to {target_url} and {test_description}"
-            else:
-                full_test_description = test_description
+        else:
+            full_test_description = test_description
+        
+        # Progress tracking containers
+        progress_container = st.empty()
+        log_container = st.empty()
+        
+        def update_progress(current, total, message):
+            progress_value = current / total if total > 0 else 0
+            progress_container.markdown(f"""
+            <div style="background: white; padding: 1rem; border-radius: 8px; margin: 1rem 0; border-left: 4px solid #6366f1;">
+                <h4>Progress: {current}/{total} ({progress_value*100:.1f}%)</h4>
+                <p><strong>Current Step:</strong> {message}</p>
+            </div>
+            """, unsafe_allow_html=True)
+            progress_container.progress(progress_value)
+        
+        def add_log(message):
+            timestamp = datetime.datetime.now().strftime("%H:%M:%S")
+            st.session_state.test_logs.append(f"[{timestamp}] {message}")
             
-            # Progress tracking containers
-            progress_container = st.empty()
-            log_container = st.empty()
-            
-            def update_progress(current, total, message):
-                progress_value = current / total if total > 0 else 0
-                progress_container.markdown(f"""
-                <div class="progress-container">
-                    <h4>Progress: {current}/{total} ({progress_value*100:.1f}%)</h4>
-                    <p><strong>Current Step:</strong> {message}</p>
-                </div>
-                """, unsafe_allow_html=True)
-                progress_container.progress(progress_value)
-            
-            def add_log(message):
-                timestamp = datetime.datetime.now().strftime("%H:%M:%S")
-                st.session_state.test_logs.append(f"[{timestamp}] {message}")
+            # Display logs in real-time
+            log_html = f"""
+            <div class="log-container">
+                {''.join([f'<div class="log-entry">{log}</div>' for log in st.session_state.test_logs[-10:]])}
+            </div>
+            """
+            log_container.markdown(log_html, unsafe_allow_html=True)
+        
+        # Run the test
+        async def run_test_async():
+            try:
+                st.session_state.test_running = True
+                results = await st.session_state.test_runner.run_test_with_progress(
+                    full_test_description,
+                    progress_callback=update_progress,
+                    log_callback=add_log
+                )
+                st.session_state.test_results = results
+                st.session_state.test_running = False
+                progress_container.empty()
                 
-                # Display logs in real-time
-                log_html = f"""
-                <div class="log-container">
-                    {''.join([f'<div class="log-entry">{log}</div>' for log in st.session_state.test_logs[-10:]])}
-                </div>
-                """
-                log_container.markdown(log_html, unsafe_allow_html=True)
-            
-            # Run the test
-            async def run_test_async():
-                try:
-                    results = await st.session_state.test_runner.run_test_with_progress(
-                        full_test_description,
-                        progress_callback=update_progress,
-                        log_callback=add_log
-                    )
-                    st.session_state.test_results = results
-                    st.session_state.test_running = False
-                    progress_container.empty()
-                    
-                    # Show completion message
-                    if results:
-                        passed = sum(1 for r in results if r.get('status') == 'passed')
-                        total = len(results)
-                        if passed == total:
-                            st.success(f"Test completed successfully! All {total} steps passed.")
-                        else:
-                            st.error(f"Test completed with issues. {passed}/{total} steps passed.")
-                    
-                except Exception as e:
-                    st.error(f"❌ Test execution failed: {str(e)}")
-                    st.session_state.test_running = False
-                    progress_container.empty()
-            
-            # Execute the async function
+                # Show completion message
+                if results:
+                    passed = sum(1 for r in results if r.get('status') == 'passed')
+                    total = len(results)
+                    if passed == total:
+                        st.success(f"Test completed successfully! All {total} steps passed.")
+                    else:
+                        st.error(f"Test completed with issues. {passed}/{total} steps passed.")
+                
+            except Exception as e:
+                st.error(f"Test execution failed: {str(e)}")
+                st.session_state.test_running = False
+                progress_container.empty()
+        
+        # Execute the async function
+        try:
             asyncio.run(run_test_async())
+        except Exception as e:
+            st.error(f"Failed to run test: {str(e)}")
+            st.session_state.test_running = False
+        finally:
             st.rerun()
     
     # Display results
@@ -900,6 +872,34 @@ Generated: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
                         "test_report.md",
                         "text/markdown"
                     )
+            
+            with col3:
+                if st.button("Clear Screenshots"):
+                    try:
+                        # Clean up screenshot directories
+                        import shutil
+                        if os.path.exists('screenshots'):
+                            shutil.rmtree('screenshots')
+                        if os.path.exists('error_screenshots'):
+                            shutil.rmtree('error_screenshots')
+                        st.success("Screenshot directories cleared!")
+                    except Exception as e:
+                        st.error(f"Failed to clear screenshots: {e}")
+
+    # Footer with system info
+    with st.expander("System Information"):
+        st.markdown(f"""
+        **Environment Details:**
+        - Python Version: {sys.version}
+        - Streamlit Version: {st.__version__}
+        - Screenshot Directory: `{os.path.abspath('screenshots')}`
+        - Error Screenshot Directory: `{os.path.abspath('error_screenshots')}`
+        
+        **Current Settings:**
+        - Headless Mode: {st.session_state.get('headless_mode', False)}
+        - Video Recording: {st.session_state.get('capture_video', False)}
+        - Slow Motion: {st.session_state.get('slow_motion', 500)}ms
+        """)
 
 if __name__ == "__main__":
     main()
