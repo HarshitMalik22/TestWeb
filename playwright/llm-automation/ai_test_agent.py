@@ -17,6 +17,7 @@ class TestAction:
     description: str = ""
     wait_for_selector: Optional[str] = None
     wait_timeout: int = 5000  # ms
+    timeout: int = 30000  # Default timeout in ms for actions
 
 class AITestAgent:
     """AI-powered test agent that converts natural language to Playwright actions"""
@@ -140,7 +141,17 @@ class AITestAgent:
             if isinstance(actions_data, list):
                 for i, action_data in enumerate(actions_data, 1):
                     try:
-                        test_actions.append(TestAction(**action_data))
+                        # Create a copy of action_data to avoid modifying the original
+                        action_kwargs = action_data.copy()
+                        
+                        # Handle timeout parameter - map it to the appropriate field
+                        if 'timeout' in action_kwargs:
+                            if action_kwargs['action_type'] == 'wait_for_selector':
+                                action_kwargs['wait_timeout'] = action_kwargs.pop('timeout')
+                            else:
+                                action_kwargs['timeout'] = action_kwargs['timeout']
+                                
+                        test_actions.append(TestAction(**action_kwargs))
                     except Exception as e:
                         print(f"Error creating TestAction from action {i}: {e}")
                         print(f"Action data: {action_data}")
@@ -149,7 +160,11 @@ class AITestAgent:
                 if 'actions' in actions_data and isinstance(actions_data['actions'], list):
                     for i, action_data in enumerate(actions_data['actions'], 1):
                         try:
-                            test_actions.append(TestAction(**action_data))
+                            action_kwargs = action_data.copy()
+                            if 'timeout' in action_kwargs:
+                                if action_kwargs['action_type'] == 'wait_for_selector':
+                                    action_kwargs['wait_timeout'] = action_kwargs.pop('timeout')
+                            test_actions.append(TestAction(**action_kwargs))
                         except Exception as e:
                             print(f"Error creating TestAction from action {i}: {e}")
                             print(f"Action data: {action_data}")

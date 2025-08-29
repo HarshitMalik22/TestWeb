@@ -1,17 +1,20 @@
-2025/08/29-19:09:08.706 54cfa6 Reusing MANIFEST /Users/harshit/Downloads/final_web_testing_playwright-main/playwright/llm-automation/custom_chrome_profile/Default/Local Storage/leveldb/MANIFEST-000001
-2025/08/29-19:09:08.709 54cfa6 Recovering log #153
-2025/08/29-19:09:08.711 54cfa6 Level-0 table #156: started
-2025/08/29-19:09:08.717 54cfa6 Level-0 table #156: 324995 bytes OK
-2025/08/29-19:09:08.718 54cfa6 Delete type=0 #153
-2025/08/29-19:09:08.720 54cfa8 Compacting 4@0 + 1@1 files
-2025/08/29-19:09:08.729 54cfa8 Generated table #158@0: 162 keys, 350222 bytes
-2025/08/29-19:09:08.729 54cfa8 Compacted 4@0 + 1@1 files => 350222 bytes
-2025/08/29-19:09:08.729 54cfa8 compacted to: files[ 0 1 1 0 0 0 0 ]
-2025/08/29-19:09:08.730 54cfa8 Delete type=2 #149
-2025/08/29-19:09:08.730 54cfa8 Delete type=2 #154
-2025/08/29-19:09:08.730 54cfa8 Delete type=2 #156
-2025/08/29-19:09:08.730 54cfa8 Delete type=2 #152
-2025/08/29-19:09:08.730 54cfa8 Delete type=2 #147
-2025/08/29-19:10:08.746 54cfa8 Level-0 table #160: started
-2025/08/29-19:10:08.751 54cfa8 Level-0 table #160: 333374 bytes OK
-2025/08/29-19:10:08.753 54cfa8 Delete type=0 #157
+2025/08/29-19:17:29.014 5502dc Reusing MANIFEST /Users/harshit/Downloads/final_web_testing_playwright-main/playwright/llm-automation/custom_chrome_profile/Default/Local Storage/leveldb/MANIFEST-000001
+2025/08/29-19:17:29.016 5502dc Recovering log #164
+2025/08/29-19:17:29.017 5502dc Level-0 table #167: started
+2025/08/29-19:17:29.022 5502dc Level-0 table #167: 20114 bytes OK
+2025/08/29-19:17:29.024 5502dc Delete type=0 #164
+2025/08/29-19:17:29.027 5502de Compacting 4@0 + 1@1 files
+2025/08/29-19:17:29.033 5502de Generated table #169@0: 167 keys, 353731 bytes
+2025/08/29-19:17:29.033 5502de Compacted 4@0 + 1@1 files => 353731 bytes
+2025/08/29-19:17:29.034 5502de compacted to: files[ 0 1 1 0 0 0 0 ]
+2025/08/29-19:17:29.034 5502de Delete type=2 #160
+2025/08/29-19:17:29.034 5502de Delete type=2 #162
+2025/08/29-19:17:29.034 5502de Delete type=2 #167
+2025/08/29-19:17:29.034 5502de Delete type=2 #158
+2025/08/29-19:17:29.034 5502de Delete type=2 #165
+2025/08/29-19:17:36.206 5502de Level-0 table #171: started
+2025/08/29-19:17:36.215 5502de Level-0 table #171: 338060 bytes OK
+2025/08/29-19:17:36.217 5502de Delete type=0 #168
+2025/08/29-19:17:36.563 5502de Level-0 table #173: started
+2025/08/29-19:17:36.565 5502de Level-0 table #173: 24402 bytes OK
+2025/08/29-19:17:36.566 5502de Delete type=0 #170
