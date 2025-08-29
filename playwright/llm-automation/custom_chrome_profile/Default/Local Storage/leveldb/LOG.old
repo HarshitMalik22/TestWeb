@@ -1,0 +1,9 @@
+2025/08/29-19:06:24.082 54be95 Reusing MANIFEST /Users/harshit/Downloads/final_web_testing_playwright-main/playwright/llm-automation/custom_chrome_profile/Default/Local Storage/leveldb/MANIFEST-000001
+2025/08/29-19:06:24.084 54be95 Recovering log #148
+2025/08/29-19:06:24.084 54be95 Reusing old log /Users/harshit/Downloads/final_web_testing_playwright-main/playwright/llm-automation/custom_chrome_profile/Default/Local Storage/leveldb/000148.log 
+2025/08/29-19:07:24.092 54be97 Level-0 table #152: started
+2025/08/29-19:07:24.096 54be97 Level-0 table #152: 338617 bytes OK
+2025/08/29-19:07:24.099 54be97 Delete type=0 #148
+2025/08/29-19:07:36.738 54be97 Level-0 table #154: started
+2025/08/29-19:07:36.743 54be97 Level-0 table #154: 324228 bytes OK
+2025/08/29-19:07:36.746 54be97 Delete type=0 #151

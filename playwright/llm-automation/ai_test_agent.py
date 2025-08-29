@@ -25,54 +25,78 @@ class AITestAgent:
         self.client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
         self.model = model
         self.system_prompt = """
-        You are an AI test automation expert. Your task is to convert natural language test descriptions 
-        into a series of executable Playwright actions. Each action should be a step that can be directly 
-        executed by a Playwright script.
-
-        Available action types:
-        - navigate: Navigate to a URL
-        - click: Click an element
-        - fill: Fill a form field
-        - select: Select an option from a dropdown
-        - check: Check a checkbox
-        - uncheck: Uncheck a checkbox
-        - hover: Hover over an element
-        - press: Press a key
-        - wait_for_selector: Wait for an element to be visible
-        - assert: Verify some condition is true
-        - screenshot: Take a screenshot
-
-        For each action, provide a clear selector that can be used to locate the element.
+        You are an AI test automation expert that converts natural language instructions into executable Playwright test steps.
+        
+        INSTRUCTIONS:
+        1. Interpret the user's intent and translate it into the most appropriate Playwright action
+        2. Be flexible with language - understand that users may describe actions in various ways
+        3. For interactive elements, prefer semantic selectors (aria-label, text, placeholder) when possible
+        4. Include appropriate waits and assertions to make tests more robust
+        
+        ACTION MAPPING GUIDE:
+        - Navigation: Use 'navigate' for any URL or website access
+        - Clicks/Taps: Use 'click' for any interaction requiring element activation
+        - Text Input: Use 'fill' for any text entry fields
+        - Dropdowns/Selectors: Use 'select' for any selection from a list
+        - Checkboxes/Radio: Use 'check' or 'uncheck' as appropriate
+        - Hover: Use 'hover' for any mouseover interactions
+        - Keyboard: Use 'press' for keyboard inputs
+        - Waits: Include 'wait_for_selector' when elements need to load
+        - Verification: Use 'assert' for any validation or verification steps
+        - Screenshot: Use 'screenshot' for capturing the current state
+        
+        OUTPUT FORMAT:
+        - Always return valid JSON array of action objects
+        - Each action must have an 'action_type' and 'description'
+        - Include 'selector' for actions that target page elements
+        - Add 'value' for inputs, selections, or assertions
+        - Use clear, descriptive text in 'description' that matches the user's intent
+        - Include 'wait_for_selector' when elements need time to appear
+        
+        EXAMPLE INPUT: "Go to example.com and log in with test@example.com"
         """
 
     async def generate_test_actions(self, test_description: str) -> List[TestAction]:
         """Generate a list of test actions from a natural language description"""
         try:
-            # More detailed prompt to get better structured output
-            prompt = f"""Convert this test description into a sequence of Playwright actions in JSON format:
+            # Enhanced prompt for better natural language understanding
+            prompt = f"""
+            Convert the following instruction into a sequence of Playwright test steps:
             
-            {test_description}
+            INSTRUCTION: {test_description}
             
-            Return ONLY a JSON array of action objects. Each action must have:
-            - action_type (string): The type of action (navigate, click, fill, etc.)
-            - selector (string, optional): The CSS selector to find the element
-            - value (string, optional): The value to input or select
-            - description (string): A brief description of the action
-            - wait_for_selector (string, optional): Optional selector to wait for
+            GUIDELINES:
+            - Understand the user's intent even if phrased differently
+            - Choose the most appropriate action type based on context
+            - Use semantic selectors when possible (prefer text, aria-labels, etc.)
+            - Include necessary waits for page transitions or element loading
+            - Be explicit about what each step is trying to accomplish
             
-            Example:
+            RESPONSE FORMAT (JSON array):
             [
                 {{
+                    // Required: Type of action (navigate, click, fill, etc.)
                     "action_type": "navigate",
+                    
+                    // Required: Human-readable description matching user's intent
+                    "description": "Navigate to example.com",
+                    
+                    // Required for element interactions: CSS, text, or other selector
                     "selector": "https://example.com",
-                    "description": "Navigate to example.com"
-                }},
-                {{
-                    "action_type": "click",
-                    "selector": "button#login",
-                    "description": "Click login button"
+                    
+                    // For inputs, selections, or assertions
+                    "value": "example@test.com",
+                    
+                    // Optional: Wait for element before action (prevents flakiness)
+                    "wait_for_selector": ".login-form",
+                    
+                    // Optional: Additional parameters as needed
+                    "timeout": 10000
                 }}
-            ]"""
+            ]
+            
+            Return ONLY the JSON array, with no additional text or formatting.
+            """
             
             # Print debug info
             print(f"Sending request to OpenAI with model: {self.model}")
