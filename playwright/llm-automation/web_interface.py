@@ -246,44 +246,33 @@ class EnhancedTestRunner:
         self.current_step = 0
         self.total_steps = 0
         
-    async def initialize_playwright(self, headless=True):
-        """Initialize Playwright with optimized settings"""
+    async def initialize_playwright(self, headless=False):
+        """Initialize Playwright with persistent Chrome profile"""
         try:
             if self.playwright is None:
                 self.playwright = await async_playwright().start()
             
-            if self.browser is None or not self.browser.is_connected():
-                # Optimized browser launch arguments
-                browser_args = [
-                    '--disable-dev-shm-usage',
-                    '--disable-extensions',
-                    '--disable-gpu',
-                    '--disable-background-timer-throttling',
-                    '--disable-backgrounding-occluded-windows',
-                    '--disable-renderer-backgrounding',
-                    '--no-sandbox',
-                    '--disable-web-security',
-                ]
+            if self.context is None or not self.context.pages:
+                # Use persistent context with custom Chrome profile
+                profile_dir = Path("/Users/harshit/Downloads/final_web_testing_playwright-main/playwright/llm-automation/custom_chrome_profile").resolve()
                 
-                self.browser = await self.playwright.chromium.launch(
+                # Create the context with persistent profile
+                self.context = await self.playwright.chromium.launch_persistent_context(
+                    user_data_dir=str(profile_dir),
                     headless=headless,
-                    args=browser_args,
-                    slow_mo=500  # Add slow motion for better visibility
+                    viewport={"width": 1440, "height": 900},
+                    slow_mo=500,  # Add slow motion for better visibility
+                    args=[
+                        '--disable-dev-shm-usage',
+                        '--no-sandbox',
+                        '--disable-web-security',
+                        '--disable-blink-features=AutomationControlled',
+                    ]
                 )
-            
-            # Create new context for each test run
-            if self.context:
-                await self.context.close()
                 
-            self.context = await self.browser.new_context(
-                viewport={'width': 1280, 'height': 800},
-                ignore_https_errors=True,
-                record_video_dir='videos/' if os.getenv('RECORD_VIDEO') else None
-            )
-            
-            # Create new page
-            self.page = await self.context.new_page()
-            self.test_executor = TestExecutor(self.page)
+                # Get the first page from the persistent context
+                self.page = self.context.pages[0] if self.context.pages else await self.context.new_page()
+                self.test_executor = TestExecutor(self.page)
             
             return self.browser, self.playwright
             
@@ -531,6 +520,7 @@ def create_sidebar():
         # Quick examples
         st.markdown("### 💡 Example Tests")
         examples = [
+            "go to arbys.com and then go to menu and in the burger select deluxe burger then go to location",
             "go to hardees.com the menu go to the breakfast section and  get me a maple biscuit",
             "go to hardees.com and in the menu check for breakfast items and open maple biscuit",
         ]
